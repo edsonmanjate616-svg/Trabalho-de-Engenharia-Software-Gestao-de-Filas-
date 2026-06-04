@@ -1,5 +1,5 @@
 Nomes:
-Allan Daniel Santana:
-Enoque Manecas:
-Elisio Manhica:
-Hernany Mucoco;
+Allan Daniel Santana,
+Enoque Manecas,
+Elisio Manhica,
+Hernany Mucoco.
