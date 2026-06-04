@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Hospitalar</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', sans-serif; background: #f4f6f9; color: #1a1a2e; }
+
+  .topbar {
+    background: #fff;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 12px 24px;
+    display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; z-index: 100;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  }
+  .topbar-title {
+    font-size: 16px; font-weight: 600; color: #1a1a2e;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .topbar-title i { color: #2563eb; font-size: 20px; }
+  .topbar-right { display: flex; align-items: center; gap: 14px; }
+  .greeting { font-size: 13px; color: #64748b; }
+  .clock-badge {
+    font-size: 13px; font-weight: 600;
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 4px 12px; color: #1a1a2e;
+  }
+
+  .content { padding: 20px 24px; max-width: 1200px; margin: 0 auto; }
+
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px; margin-bottom: 20px;
+  }
+  .metric-card {
+    background: #fff;
+    border-radius: 10px;
+    padding: 16px 18px;
+    border: 1px solid #e2e8f0;
+  }
+  .metric-label {
+    font-size: 12px; color: #64748b; margin-bottom: 6px;
+    display: flex; align-items: center; gap: 6px; font-weight: 500;
+  }
+  .metric-value { font-size: 28px; font-weight: 700; color: #1a1a2e; }
+  .metric-sub { font-size: 11px; color: #94a3b8; margin-top: 2px; }
+
+  .alert-urgent {
+    background: #fef2f2;
+    border: 1px solid #fca5a5;
+    border-left: 4px solid #ef4444;
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin-bottom: 18px;
+    display: none;
+    align-items: flex-start; gap: 12px;
+    animation: pulseAlert 2s infinite;
+  }
+  .alert-urgent.visible { display: flex; }
+  @keyframes pulseAlert {
+    0%, 100% { border-left-color: #ef4444; }
+    50% { border-left-color: #dc2626; }
+  }
+  .alert-urgent i { color: #ef4444; font-size: 20px; flex-shrink: 0; margin-top: 1px; }
+  .alert-urgent-title { font-size: 13px; font-weight: 600; color: #991b1b; }
+  .alert-urgent-body { font-size: 12px; color: #b91c1c; margin-top: 2px; }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  @media (max-width: 700px) { .two-col { grid-template-columns: 1fr; } }
+
+  .card-block {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .card-head {
+    padding: 11px 16px;
+    border-bottom: 1px solid #e2e8f0;
+    font-size: 13px; font-weight: 600;
+    color: #1a1a2e;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .card-head i { font-size: 16px; }
+  .card-body-p { padding: 12px 16px; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  th {
+    font-size: 11px; font-weight: 600; color: #64748b;
+    text-align: left; padding: 8px 14px;
+    border-bottom: 1px solid #e2e8f0;
+    background: #f8fafc;
+    text-transform: uppercase; letter-spacing: 0.03em;
+  }
+  td { padding: 9px 14px; color: #1a1a2e; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #f8fafc; }
+
+  .badge {
+    font-size: 10px; font-weight: 600; padding: 3px 8px;
+    border-radius: 99px; display: inline-block; letter-spacing: 0.02em;
+  }
+  .badge-urgente  { background: #fef2f2; color: #991b1b; border: 1px solid #fca5a5; }
+  .badge-normal   { background: #f0fdf4; color: #166534; border: 1px solid #86efac; }
+  .badge-espera   { background: #fffbeb; color: #92400e; border: 1px solid #fcd34d; }
+  .badge-disp     { background: #f0fdf4; color: #166534; border: 1px solid #86efac; }
+  .badge-ocup     { background: #fffbeb; color: #92400e; border: 1px solid #fcd34d; }
+  .badge-aus      { background: #f8fafc; color: #475569; border: 1px solid #cbd5e1; }
+
+  .avail-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 0; border-bottom: 1px solid #f1f5f9;
+  }
+  .avail-row:last-child { border-bottom: none; }
+  .avail-avatar {
+    width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
+    background: #dbeafe;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; color: #1d4ed8;
+  }
+  .avail-info { flex: 1; min-width: 0; }
+  .avail-name { font-size: 12px; font-weight: 600; color: #1a1a2e; }
+  .avail-time { font-size: 11px; color: #64748b; margin-top: 1px; display: flex; align-items: center; gap: 4px; }
+  .avail-phone { font-size: 11px; color: #2563eb; display: flex; align-items: center; gap: 4px; margin-top: 2px; font-weight: 500; }
+
+  .consult-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 0; border-bottom: 1px solid #f1f5f9;
+  }
+  .consult-row:last-child { border-bottom: none; }
+  .consult-name { font-size: 12px; color: #1a1a2e; flex: 1; }
+  .consult-bar-wrap { width: 90px; height: 6px; background: #f1f5f9; border-radius: 99px; overflow: hidden; }
+  .consult-bar { height: 100%; border-radius: 99px; background: #2563eb; }
+  .consult-count { font-size: 12px; font-weight: 700; color: #1a1a2e; min-width: 20px; text-align: right; }
+
+  .refresh-row { display: flex; justify-content: flex-end; margin-top: 12px; }
+  .btn-refresh {
+    font-size: 12px; color: #64748b;
+    background: #fff; border: 1px solid #e2e8f0;
+    border-radius: 8px; padding: 6px 14px; cursor: pointer;
+    display: flex; align-items: center; gap: 6px; font-weight: 500;
+    transition: background 0.15s;
+  }
+  .btn-refresh:hover { background: #f8fafc; color: #1a1a2e; }
+  .btn-refresh i { font-size: 14px; }
+
+  .empty-state { color: #94a3b8; font-size: 12px; text-align: center; padding: 20px; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-title">
+    <i class="ti ti-building-hospital"></i>
+    Sistema Hospitalar
+  </div>
+  <div class="topbar-right">
+    <span class="greeting" id="greetingText">—</span>
+    <span class="clock-badge" id="clockDisplay">--:--</span>
+  </div>
+</div>
+
+<div class="content">
+
+  <!-- ALERTA URGENTE -->
+  <div id="alertUrgente" class="alert-urgent" role="alert">
+    <i class="ti ti-alert-triangle"></i>
+    <div>
+      <div class="alert-urgent-title">⚠ Paciente(s) em estado URGENTE na fila</div>
+      <div class="alert-urgent-body" id="alertUrgenteBody">—</div>
+    </div>
+  </div>
+
+  <!-- MÉTRICAS -->
+  <div class="metrics-grid">
+    <div class="metric-card">
+      <div class="metric-label"><i class="ti ti-users"></i> Pacientes</div>
+      <div class="metric-value" id="mPacientes">—</div>
+      <div class="metric-sub">registados</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label"><i class="ti ti-stethoscope"></i> Médicos</div>
+      <div class="metric-value" id="mMedicos">—</div>
+      <div class="metric-sub">no sistema</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label"><i class="ti ti-list"></i> Fila Atual</div>
+      <div class="metric-value" id="mFila">—</div>
+      <div class="metric-sub">aguardando</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label"><i class="ti ti-calendar-check"></i> Atendimentos</div>
+      <div class="metric-value" id="mAtend">—</div>
+      <div class="metric-sub">hoje</div>
+    </div>
+  </div>
+
+  <!-- FILA + MÉDICOS -->
+  <div class="two-col">
+
+    <div class="card-block">
+      <div class="card-head">
+        <i class="ti ti-list-check" style="color:#16a34a"></i> Fila de Atendimento
+      </div>
+      <table>
+        <thead>
+          <tr><th>Paciente</th><th>Médico</th><th>Prior.</th><th>Estado</th></tr>
+        </thead>
+        <tbody id="filaTable">
+          <tr><td colspan="4" class="empty-state">A carregar...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card-block">
+      <div class="card-head">
+        <i class="ti ti-user-check" style="color:#2563eb"></i> Disponibilidade dos Médicos
+      </div>
+      <div class="card-body-p" id="medicosDisp">
+        <div class="empty-state">A carregar...</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- CONSULTAS + PACIENTES -->
+  <div class="two-col">
+
+    <div class="card-block">
+      <div class="card-head">
+        <i class="ti ti-chart-bar" style="color:#d97706"></i> Consultas Diárias por Paciente
+      </div>
+      <div class="card-body-p" id="consultasDiarias">
+        <div class="empty-state">A carregar...</div>
+      </div>
+    </div>
+
+    <div class="card-block">
+      <div class="card-head">
+        <i class="ti ti-users" style="color:#64748b"></i> Pacientes
+      </div>
+      <table>
+        <thead>
+          <tr><th>ID</th><th>Nome</th><th>Idade</th></tr>
+        </thead>
+        <tbody id="pacientesTable">
+          <tr><td colspan="3" class="empty-state">A carregar...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+
+  <div class="refresh-row">
+    <button class="btn-refresh" onclick="loadAll()">
+      <i class="ti ti-refresh"></i> Actualizar dados
+    </button>
+  </div>
+
+</div>
+
+<script>
+const API = "http://localhost:8080";
+
+// ─── RELÓGIO E SAUDAÇÃO ───────────────────────────────────────────
+function getGreeting() {
+  const h = new Date().getHours();
+  if (h >= 5 && h < 12) return "Bom dia";
+  if (h >= 12 && h < 18) return "Boa tarde";
+  return "Boa noite";
+}
+
+function updateClock() {
+  const now = new Date();
+  const hh = String(now.getHours()).padStart(2, '0');
+  const mm = String(now.getMinutes()).padStart(2, '0');
+  document.getElementById('clockDisplay').textContent = hh + ':' + mm;
+  document.getElementById('greetingText').textContent = getGreeting() + ', utilizador';
+}
+updateClock();
+setInterval(updateClock, 30000);
+
+// ─── FETCH SEGURO ────────────────────────────────────────────────
+async function safeFetch(url) {
+  try {
+    const r = await fetch(API + url);
+    if (!r.ok) return null;
+    return await r.json();
+  } catch { return null; }
+}
+
+// ─── HELPERS ─────────────────────────────────────────────────────
+function getIniciais(nome) {
+  if (!nome) return '?';
+  const p = nome.trim().split(' ');
+  return p.length === 1
+    ? p[0][0].toUpperCase()
+    : (p[0][0] + p[p.length - 1][0]).toUpperCase();
+}
+
+function badgePrioridade(p) {
+  if (!p) return '<span class="badge badge-aus">—</span>';
+  const u = p.toString().toUpperCase();
+  if (u === 'URGENTE' || u === '1') return '<span class="badge badge-urgente">Urgente</span>';
+  if (u === 'NORMAL'  || u === '2') return '<span class="badge badge-normal">Normal</span>';
+  return `<span class="badge badge-espera">${p}</span>`;
+}
+
+function badgeEstado(e) {
+  if (!e) return '<span class="badge badge-aus">—</span>';
+  const u = e.toString().toUpperCase();
+  if (u.includes('ATEND')) return '<span class="badge badge-disp">Em atendimento</span>';
+  if (u.includes('AGUARD') || u.includes('ESPERA')) return '<span class="badge badge-espera">Aguardando</span>';
+  return `<span class="badge badge-aus">${e}</span>`;
+}
+
+function badgeDisp(d) {
+  if (!d) return '<span class="badge badge-aus">—</span>';
+  const u = d.toString().toUpperCase();
+  if (u.includes('DISP') || u === 'FREE') return '<span class="badge badge-disp">Disponível</span>';
+  if (u === 'OCUPADO') return '<span class="badge badge-ocup">Ocupado</span>';
+  return `<span class="badge badge-aus">${d}</span>`;
+}
+
+// ─── ALERTA URGENTE ───────────────────────────────────────────────
+function checkUrgentes(fila) {
+  const urgentes = fila.filter(f => {
+    const p = (f.prioridade || '').toString().toUpperCase();
+    return p === 'URGENTE' || p === '1';
+  });
+  const el = document.getElementById('alertUrgente');
+  if (urgentes.length > 0) {
+    const nomes = urgentes.map(u => u.paciente?.nome || u.paciente || 'Desconhecido').join(', ');
+    document.getElementById('alertUrgenteBody').textContent =
+      urgentes.length + ' paciente(s) urgente(s): ' + nomes;
+    el.classList.add('visible');
+  } else {
+    el.classList.remove('visible');
+  }
+}
+
+// ─── DISPONIBILIDADE DOS MÉDICOS ──────────────────────────────────
+function renderMedicosDisp(data) {
+  const el = document.getElementById('medicosDisp');
+  if (!data || data.length === 0) {
+    el.innerHTML = '<div class="empty-state">Sem dados de médicos</div>';
+    return;
+  }
+  let html = '';
+  data.forEach(m => {
+    const disp = m.disponibilidade || m.status || '';
+    const isDisp = disp.toUpperCase().includes('DISP') || disp.toUpperCase() === 'FREE';
+    const hora = m.horaDisponivel || m.disponivel_em || m.proxima_consulta || null;
+    const tel  = m.telefone || m.contacto || null;
+
+    html += `
+      <div class="avail-row">
+        <div class="avail-avatar">${getIniciais(m.nome)}</div>
+        <div class="avail-info">
+          <div class="avail-name">${m.nome || '—'}</div>
+          <div class="avail-time">
+            <i class="ti ti-clock" style="font-size:11px"></i>
+            ${hora ? 'Disponível às ' + hora : (isDisp ? 'Disponível agora' : 'Indisponível')}
+          </div>
+          ${isDisp && tel
+            ? `<div class="avail-phone"><i class="ti ti-phone" style="font-size:11px"></i> ${tel}</div>`
+            : ''}
+        </div>
+        <div>${badgeDisp(disp)}</div>
+      </div>`;
+  });
+  el.innerHTML = html;
+}
+
+// ─── CONSULTAS DIÁRIAS ────────────────────────────────────────────
+function renderConsultasDiarias(pacientes, fila) {
+  const el = document.getElementById('consultasDiarias');
+  if (!pacientes || pacientes.length === 0) {
+    el.innerHTML = '<div class="empty-state">Sem dados</div>';
+    return;
+  }
+  const contagem = {};
+  fila.forEach(f => {
+    const nome = f.paciente?.nome || (typeof f.paciente === 'string' ? f.paciente : null);
+    if (nome) contagem[nome] = (contagem[nome] || 0) + 1;
+  });
+  pacientes.forEach(p => {
+    if (!contagem[p.nome]) {
+      contagem[p.nome] = p.consultasHoje || p.consultas_hoje || 0;
+    }
+  });
+  const max = Math.max(...Object.values(contagem), 1);
+  let html = '';
+  Object.entries(contagem).slice(0, 7).forEach(([nome, cnt]) => {
+    const pct = Math.round((cnt / max) * 100);
+    html += `
+      <div class="consult-row">
+        <div class="consult-name">${nome}</div>
+        <div class="consult-bar-wrap">
+          <div class="consult-bar" style="width:${pct}%"></div>
+        </div>
+        <div class="consult-count">${cnt}</div>
+      </div>`;
+  });
+  el.innerHTML = html || '<div class="empty-state">Sem consultas hoje</div>';
+}
+
+// ─── DADOS DEMO (quando API não responde) ─────────────────────────
+function getMockData() {
+  return {
+    pacientes: [
+      { id: 1, nome: 'Ana Moreira',       idade: 34, consultasHoje: 2 },
+      { id: 2, nome: 'Carlos Figueiredo', idade: 52, consultasHoje: 1 },
+      { id: 3, nome: 'Luísa Tembe',       idade: 28, consultasHoje: 3 },
+      { id: 4, nome: 'João Macamo',       idade: 67, consultasHoje: 1 },
+    ],
+    medicos: [
+      { id: 1, nome: 'Dra. Sofia Dlamini', disponibilidade: 'Disponível', horaDisponivel: '10:00', telefone: '+258 84 123 456' },
+      { id: 2, nome: 'Dr. Rui Nhambiu',    disponibilidade: 'Ocupado',    horaDisponivel: '11:30', telefone: null },
+      { id: 3, nome: 'Dra. Fátima Bila',   disponibilidade: 'Disponível', horaDisponivel: '09:30', telefone: '+258 82 987 654' },
+    ],
+    fila: [
+      { paciente: { nome: 'Luísa Tembe'       }, medico: { nome: 'Dra. Sofia Dlamini' }, prioridade: 'Urgente', estado: 'Aguardando'      },
+      { paciente: { nome: 'Carlos Figueiredo' }, medico: { nome: 'Dr. Rui Nhambiu'    }, prioridade: 'Normal',  estado: 'Em atendimento'  },
+      { paciente: { nome: 'João Macamo'       }, medico: { nome: 'Dra. Fátima Bila'   }, prioridade: 'Normal',  estado: 'Aguardando'      },
+    ],
+  };
+}
+
+// ─── CARREGAR TUDO ────────────────────────────────────────────────
+async function loadAll() {
+  let [pacientes, medicos, fila] = await Promise.all([
+    safeFetch('/pacientes'),
+    safeFetch('/medicos'),
+    safeFetch('/fila'),
+  ]);
+
+  // Fallback para dados demo se API não responder
+  if (!pacientes && !medicos && !fila) {
+    const mock = getMockData();
+    pacientes = mock.pacientes;
+    medicos   = mock.medicos;
+    fila      = mock.fila;
+  }
+
+  pacientes = pacientes || [];
+  medicos   = medicos   || [];
+  fila      = fila      || [];
+
+  // Métricas
+  document.getElementById('mPacientes').textContent = pacientes.length;
+  document.getElementById('mMedicos').textContent   = medicos.length;
+  document.getElementById('mFila').textContent       = fila.length;
+  const atendidos = fila.filter(f => (f.estado || '').toUpperCase().includes('ATEND')).length;
+  document.getElementById('mAtend').textContent = atendidos || fila.length;
+
+  // Tabela de pacientes
+  const ptBody = document.getElementById('pacientesTable');
+  ptBody.innerHTML = pacientes.length === 0
+    ? '<tr><td colspan="3" class="empty-state">Sem pacientes</td></tr>'
+    : pacientes.map(p =>
+        `<tr><td>${p.id}</td><td>${p.nome}</td><td>${p.idade}</td></tr>`
+      ).join('');
+
+  // Tabela da fila
+  const ftBody = document.getElementById('filaTable');
+  ftBody.innerHTML = fila.length === 0
+    ? '<tr><td colspan="4" class="empty-state">Fila vazia</td></tr>'
+    : fila.map(f => `
+        <tr>
+          <td>${f.paciente?.nome || f.paciente || '—'}</td>
+          <td>${f.medico?.nome  || f.medico   || '—'}</td>
+          <td>${badgePrioridade(f.prioridade)}</td>
+          <td>${badgeEstado(f.estado)}</td>
+        </tr>`
+      ).join('');
+
+  // Alerta urgentes
+  checkUrgentes(fila);
+
+  // Disponibilidade médicos
+  renderMedicosDisp(medicos);
+
+  // Consultas diárias
+  renderConsultasDiarias(pacientes, fila);
+}
+
+loadAll();
+</script>
+</body>
+</html>
